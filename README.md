@@ -61,7 +61,7 @@ Fact sheets include, sales data sheets, stock sheets, order sheets, and planning
 Dimension tables include, product SKU table, customer table, time date table (generated using the time function)
 
 [//]: ![Diagramme](https://user-images.githubusercontent.com/20716430/236953993-ec3f672b-36e4-4d99-8968-02591ddaa34d.png)
-<img decoding="async" src="https://user-images.githubusercontent.com/20716430/236953993-ec3f672b-36e4-4d99-8968-02591ddaa34d.png" width="50%">
+<img decoding="async" src="https://user-images.githubusercontent.com/20716430/236953993-ec3f672b-36e4-4d99-8968-02591ddaa34d.png" width="80%">
 
 
 
