@@ -20,6 +20,12 @@ Batch process these files using M language, selecting the sheets in the data dec
 Excel.Workbook([Content],true)
 ```
 
+The data is large because the original dimension is too large: for example, if the time dimension is minutes, I convert it to date and use Group By; if the geographic dimension is city, I convert it to departemnt and use group by.  
+The original dimension of product dimension is SKU, I convert it to large category and use Group By
+```
+= Table.Group(RenameColumns, {"activetime", "SKU", "SKU code", "Final Client", "clien"}, {{"Qte", each Table.RowCount(_), Int64.Type}})
+```
+
 ```
 let
     源 = Folder.Files("C:\Users\JieLIAO\OneDrive - OPPO FRANCE\Documents - supplychain\入库IMEI&激活IMEI\FR激活IMEI"),
