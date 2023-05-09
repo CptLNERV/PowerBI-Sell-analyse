@@ -1,6 +1,6 @@
 # PowerBI-Sell-analyse-model
 
-
+（All data appearing in this data model are imaginary and any similarities are entirely coincidental）  
 Purpose: The purpose of the report is to summarise weekly sales data and to visualise and analyse it as required by the sales department
 
 It is divided into the following steps:  
@@ -183,3 +183,30 @@ if(Role in{"Responsable","GTM","Developer","SupplyChain"},
     )
    
 ```
+
+I usually have to write a dozen or more Mesures, and it is very efficient to manage them through this inheritance
+We then use Class sales to inherit the results we need to calculate, for example, in the example below, to calculate the sales for the day last Friday, we introduce Class Sale in Calculate as the base for the calculation
+
+```
+Act_Last_Friday = 
+CALCULATE([Class Activated_DayDay]<img width="158" alt="Mesure_Group" src="https://github.com/CptLNERV/PowerBI-Sell-analyse/assets/20716430/d8f7964d-0c01-4d8a-94be-c3df46a39486">
+
+,FILTER('FRIMEI', 'FRIMEI'[Date]=[Last_Friday])
+)
+```
+There are dozens of Mesures that need to be calculated like this. By modifying the calculation method in the parent class, you can achieve the purpose of batch modifying dozens of Mesures, grouping them by prefix and putting them in the same folder to achieve the purpose of quick batch management.
+
+<img decoding="async" src="https://user-images.githubusercontent.com/20716430/237149361-00a2e690-5b25-4ac8-aebd-4163bf1e03ed.png" width="20%">
+![Uploading Mesure_Group.png…]()
+
+
+
+# 4.Creating visual objects
+Select the appropriate visual object according to your needs and place the prepared Mesure into it
+
+
+
+
+
+
+
