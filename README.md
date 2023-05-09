@@ -68,15 +68,19 @@ Dimension tables include, product SKU table, customer table, time date table (ge
 
 
 # 3.Writing Mesure with DAX
+Here I use the techniques of an object-oriented programming language (of course we know that Dax is not an object-oriented programming language)  
+I have named the most basic metric [Class sales] for ease of use later on, where we will present the different dimensions of sales
+
+
 
 ```
 Class Activated_DayDay = 
-// 这里是所有激活的父类，所有激活都从这里继承可视
-//后续继承填入day 筛选
+// This is the parent class of all activations and all activations are inherited visually from here
+// Subsequent succession fills in the day filter
 // var R = IF(CONTAINS(RLS,RLS[User],USERPRINCIPALNAME()),1,0)
 Var Role = LOOKUPVALUE(RLS[Role],RLS[User],USERPRINCIPALNAME())
 var b2b = SELECTEDVALUE('Swith_B2B'[B2B])
-//这个结果使用于Responbable / GTM / Tesetr / Developer 
+//This result is used in Responbable / GTM / Tesetr / Developer 
 
 var a =IF(b2b="On",
 CALCULATE(SUM('FR激活IMEI'[Qte])
@@ -92,7 +96,7 @@ CALCULATE(SUM('FR激活IMEI'[Qte])
 )
 )
 
-//这个结果适用于Orange相关人员 Pierre Orange
+// This result applies to product category A related persons group A
 var b = CALCULATE(SUM('FR激活IMEI'[Qte])
 ,FILTER('FR激活IMEI','FR激活IMEI'[type]="MOBILE")
 ,Filter('OPPO_Product_Mapping','OPPO_Product_Mapping'[Client]<>"LDU")
@@ -100,7 +104,7 @@ var b = CALCULATE(SUM('FR激活IMEI'[Qte])
 ,FILTER('FR激活IMEI','FR激活IMEI'[激活时间]<>TODAY())
 )
 
-//这个结果适用于SFR相关人员 Sonia SFR
+//This result applies to product category B related persons group B
 var c = CALCULATE(SUM('FR激活IMEI'[Qte])
 ,FILTER('FR激活IMEI','FR激活IMEI'[type]="MOBILE")
 ,Filter('OPPO_Product_Mapping','OPPO_Product_Mapping'[Client]<>"LDU")
@@ -108,7 +112,7 @@ var c = CALCULATE(SUM('FR激活IMEI'[Qte])
 ,FILTER('FR激活IMEI','FR激活IMEI'[激活时间]<>TODAY())
 )
 
-//这个结果适用于BYT相关人员 Sebatien Bouygue
+//This result applies to product category C related persons group C
 var d = CALCULATE(SUM('FR激活IMEI'[Qte])
 ,FILTER('FR激活IMEI','FR激活IMEI'[type]="MOBILE")
 ,Filter('OPPO_Product_Mapping','OPPO_Product_Mapping'[Client]<>"LDU")
@@ -116,7 +120,7 @@ var d = CALCULATE(SUM('FR激活IMEI'[Qte])
 ,FILTER('FR激活IMEI','FR激活IMEI'[激活时间]<>TODAY())
 )
 
-//这个结果适用于SalesOm1相关人员(Benoit) FnacDarty/LECLERC/La Poste/CORA/COSTCO
+//This result applies to product category D related persons group D
 var SaleOm1 = CALCULATE(SUM('FR激活IMEI'[Qte])
 ,FILTER('FR激活IMEI','FR激活IMEI'[type]="MOBILE")
 ,Filter('OPPO_Product_Mapping','OPPO_Product_Mapping'[Client]<>"LDU")
@@ -124,7 +128,7 @@ var SaleOm1 = CALCULATE(SUM('FR激活IMEI'[Qte])
 ,FILTER('FR激活IMEI','FR激活IMEI'[激活时间]<>TODAY())
 )
 
-//这个结果适用于SalesOm2相关人员(Jiaxin) Free/SystèmeU/Gpdis/LDLC
+//This result applies to product category E relevant persons group E
 var SaleOm2 = CALCULATE(SUM('FR激活IMEI'[Qte])
 ,FILTER('FR激活IMEI','FR激活IMEI'[type]="MOBILE")
 ,Filter('OPPO_Product_Mapping','OPPO_Product_Mapping'[Client]<>"LDU")
@@ -132,7 +136,7 @@ var SaleOm2 = CALCULATE(SUM('FR激活IMEI'[Qte])
 ,FILTER('FR激活IMEI','FR激活IMEI'[激活时间]<>TODAY())
 )
 
-//这个结果适用于SalesOm3相关人员(Sarah) Boulanger/Auchan/Carrefour/Casino/EléctroDépôt/INTERMARCHE
+//This result applies to product category F relevant persons group F
 //2023/1/10 添加KA : BOUYGUES
 var SaleOm3 = CALCULATE(SUM('FR激活IMEI'[Qte])
 ,FILTER('FR激活IMEI','FR激活IMEI'[type]="MOBILE")
@@ -140,7 +144,8 @@ var SaleOm3 = CALCULATE(SUM('FR激活IMEI'[Qte])
 ,FILTER('Settlement_Mapping','Settlement_Mapping'[KA_Short] in{"Boulanger","Auchan","Carrefour","Casino","EléctroDépôt","INTERMARCHE","BOUYGUES"})
 ,FILTER('FR激活IMEI','FR激活IMEI'[激活时间]<>TODAY())
 )
-//这个结果适用于SalesOm4相关人员(Edouard) Amazon/Cdiscount/UBALDI
+
+//This result applies to product category G relevant persons group G
 var SaleOm4 = CALCULATE(SUM('FR激活IMEI'[Qte])
 ,FILTER('FR激活IMEI','FR激活IMEI'[type]="MOBILE")
 ,Filter('OPPO_Product_Mapping','OPPO_Product_Mapping'[Client]<>"LDU")
@@ -151,11 +156,11 @@ var SaleOm4 = CALCULATE(SUM('FR激活IMEI'[Qte])
 return
 if(Role in{"Responsable","GTM","Developer","SupplyChain"},
     a,
-        IF(Role ="Orange",
+        IF(Role ="b",
         b,
-            IF(Role="SFR",
+            IF(Role="c",
             c,
-                IF(Role="BOUYGUES",
+                IF(Role="d",
                 d,
                     IF(Role="SaleOm1",
                     SaleOm1,
