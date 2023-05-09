@@ -60,16 +60,32 @@ edJoin(Distinct2, {"imei"}, All_IMEI_Sell_Through, {"IMEI"}, "IMEI_Sell_Through"
 
 
 
-# 2.Create table-to-table management
+# 2.Create table-to-table relationship management
 Ensure data quality between individual tables, fact and dimension tables, to the extent that relationships between individual tables are successfully established, one-to-one/one-to-many relationships  
+
+Generating time dimension tables using the Time Intelligence function
+```
+DateTable = ADDCOLUMNS (
+CALENDAR ( date(2020,1,1),date(2030,12,31) ),
+"Year", YEAR ( [Date] ),
+"Quarter", ROUNDUP( MONTH ( [Date] )/3,0 ),
+"Month", MONTH ( [Date] ),
+"Week", WEEKNUM([Date],2)-1,
+"YearQuarter", YEAR ( [Date] ) & "Q" & ROUNDUP( MONTH ( [Date] )/3,0 ) ,
+"Year+Month", YEAR ( [Date] ) * 100 + MONTH ( [Date] ),
+"Year+Week",IF(WEEKNUM ([Date],2)-1 = 0,(YEAR([Date])-1) * 100 + 52, YEAR([Date]) * 100 + WEEKNUM ([Date],2)-1 ),
+//避免第0周的出现，如果周数等于0，则Year减一，we变为52
+"Weekday", WEEKDAY([Date])
+)
+```
+
 (In the chart below, all above are fact tables and all below are dimension tables)  
 Fact sheets include, sales data sheets, stock sheets, order sheets, and planning sheets.
 Dimension tables include, product SKU table, customer table, time date table (generated using the time function)
 
+
 [//]: ![Diagramme](https://user-images.githubusercontent.com/20716430/236953993-ec3f672b-36e4-4d99-8968-02591ddaa34d.png)
 <img decoding="async" src="https://user-images.githubusercontent.com/20716430/236953993-ec3f672b-36e4-4d99-8968-02591ddaa34d.png" width="80%">
-
-
 
 
 
