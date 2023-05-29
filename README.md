@@ -16,9 +16,30 @@ Difficulty: There are approximately 300 sales data files per week, with approxim
 Entry point: the data deconstruction is the same for each file  
 Batch process these files using M language, selecting the sheets in the data decomposition
 
+Determine the file storage path and read the online Sharepoint path to:
+
 ```
+Source = SharePoint.Files("https://ooo.sharepoint.com/sites/ooo-Fr", [ApiVersion = 15])
+```
+
+Successful reading of online data source file
+
+
+<img decoding="async" src="https://user-images.githubusercontent.com/20716430/241747022-abe6d6b6-f9e8-4c98-b102-9f11e73c98f0.png" width="80%">\
+
+
+Use the formula for parsing Excel files here
+
+
+```
+= Table.AddColumn(DeleteColumns, "Data", each Excel.Workbook([Content],true))
+
 Excel.Workbook([Content],true)
 ```
+
+Successfully parsing the corresponding data from the data source and then starting data cleansing and processing
+
+The full steps are as follows:
 
 The data is large because the original dimension is too large: for example, if the time dimension is minutes, I convert it to date and use Group By; if the geographic dimension is city, I convert it to departemnt and use group by.  
 The original dimension of product dimension is SKU, I convert it to large category and use Group By
