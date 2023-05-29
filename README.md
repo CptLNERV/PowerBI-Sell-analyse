@@ -61,8 +61,7 @@ let
     TransformColumnTypes = Table.TransformColumnTypes(Distinct, {{"激活时间", type datetime}}, "zh-CN"),
     TransformColumnTypes2 = Table.TransformColumnTypes(TransformColumnTypes,{{"激活时间", type date}}),
     Distinct2 = Table.Distinct(TransformColumnTypes2, {"imei"}),
-    NestedJoin = Table.Nest![Uploading Diagramme de base de données.png…]()
-edJoin(Distinct2, {"imei"}, All_IMEI_Sell_Through, {"IMEI"}, "IMEI_Sell_Through", JoinKind.LeftOuter),
+    NestedJoin = Table.Join(Distinct2, {"imei"}, All_IMEI_Sell_Through, {"IMEI"}, "IMEI_Sell_Through", JoinKind.LeftOuter),
     #"ExpandTableColumn“IMEI_Sell_Through”" = Table.ExpandTableColumn(NestedJoin, "IMEI_Sell_Through", {"Client"}, {"Client"}),
     AddColumn2 = Table.AddColumn(#"ExpandTableColumn“IMEI_Sell_Through”", "自定义", each if [Client] = null then [最终客户] else if [Client] = """" then [最终客户] else if Text.Contains([Client], "OPPO France")       then [最终客户] else [Client]),
     RenameColumns = Table.RenameColumns(AddColumn2,{{"自定义", "Final Client"}}),
@@ -111,9 +110,75 @@ Dimension tables include, product SKU table, customer table, time date table (ge
 
 
 # 3.Writing Mesure with DAX
+
+1. DAX writing
+
+    ## a. Regular Mesure writing, calculating regular totals
+    
+    For example, calculating last Monday's total
+    
+    ```
+    Act_This_Monday = 
+    CALCULATE([Class Sales]
+    ,FILTER('FRIMEI', 'FR激活IMEI'[date]=[This_Monday])
+    )
+    ```
+    For example, calculating Wednesday's total
+    ```
+    Act_This_Wednesday = 
+    CALCULATE([Class Activated_DayDay]
+    ,FILTER('FRIMEI', 'FR激活IMEI'[date]=[This_Wednesday])
+    )
+    ```
+    
+    Here [Last_Monday] is a dynamic result, his return value is the date of the previous Monday
+     ```
+    Last_Monday = 
+    var a = DATE(2023,1,1) /* January 2, 2022 is the first Sunday, in other words January 3 is the beginning of the first week */
+    /* 1 January 2023 is the first Monday*/
+    +
+    (WEEKNUM([TrueToday]-7,2)-2)*7+1 /*Get the number of weeks in the last week, the number of weeks plus*/
+    /*以Last Monday Base, forward or backward to determine last two weeks' dates*/
+    return a
+     ```
+     
+    ![Regular_data](https://github.com/CptLNERV/PowerBI-Sell-analyse/assets/20716430/62ae37e2-9b8f-49ea-b7a0-c2c631c619ea)
+
+    
+    ## b. Calculation of relative quantities for analysis
+    
+    For example, [Percentage_inside] is used to calculate the proportion of sales to the total, as shown in the diagram
+    
+    ![Percentage_inside ](https://github.com/CptLNERV/PowerBI-Sell-analyse/assets/20716430/365456f9-192e-4f73-b0d7-9c6fcdca6961)
+
+    
+    
+      ```
+    Percentage_inside  = 
+    // ALL cannot be used at the same time as fiter, so a new metric Activation[Total_Analyse] has been created
+
+    var Activation = 
+    CALCULATE([Total_Analyse]
+    )
+
+    var Total_Activation =
+    IF(NOT(ISBLANK(Activation)),
+        CALCULATE([Total_Analyse]
+        ,ALL(Settlement_Mapping[KA_Short])
+        ,ALL(OrdreKA[Index])
+        ),
+    BLANK())
+
+    //return Total_Activation
+    //return Activation
+    return If(DIVIDE(Activation,Total_Activation)=1,BLANK(),DIVIDE(Activation,Total_Activation))
+    //Total categories do not need to show 100%
+
+
+
+2. Mesure Management
 Here I use the techniques of an object-oriented programming language (of course we know that Dax is not an object-oriented programming language)  
 I have named the most basic metric [Class sales] for ease of use later on, where we will present the different dimensions of sales
-
 
 
 ```
@@ -126,74 +191,74 @@ var b2b = SELECTEDVALUE('Swith_B2B'[B2B])
 //This result is used in Responbable / GTM / Tesetr / Developer 
 
 var a =IF(b2b="On",
-CALCULATE(SUM('FR激活IMEI'[Qte])
-,FILTER('FR激活IMEI','FR激活IMEI'[type]="MOBILE")
+CALCULATE(SUM('FRIMEI'[Qte])
+,FILTER('FRIMEI','FRIMEI'[type]="MOBILE")
 ,Filter('OPPO_Product_Mapping','OPPO_Product_Mapping'[Client]<>"LDU")
-,FILTER('FR激活IMEI','FR激活IMEI'[激活时间]<>TODAY())
+,FILTER('FRIMEI','FRIMEI'[date]<>TODAY())
 ),
-CALCULATE(SUM('FR激活IMEI'[Qte])
-,FILTER('FR激活IMEI','FR激活IMEI'[type]="MOBILE")
+CALCULATE(SUM('FRIMEI'[Qte])
+,FILTER('FRIMEI','FRIMEI'[type]="MOBILE")
 ,Filter('OPPO_Product_Mapping','OPPO_Product_Mapping'[Client]<>"LDU")
-,FILTER('FR激活IMEI','FR激活IMEI'[激活时间]<>TODAY())
+,FILTER('FRIMEI','FRIMEI'[date]<>TODAY())
 ,FILTER('Settlement_Mapping','Settlement_Mapping'[KA_Short]<>"B2B")
 )
 )
 
 // This result applies to product category A related persons group A
-var b = CALCULATE(SUM('FR激活IMEI'[Qte])
-,FILTER('FR激活IMEI','FR激活IMEI'[type]="MOBILE")
+var b = CALCULATE(SUM('FRIMEI'[Qte])
+,FILTER('FRIMEI','FRIMEI'[type]="MOBILE")
 ,Filter('OPPO_Product_Mapping','OPPO_Product_Mapping'[Client]<>"LDU")
 ,FILTER('Settlement_Mapping','Settlement_Mapping'[KA_Short]="Orange")
-,FILTER('FR激活IMEI','FR激活IMEI'[激活时间]<>TODAY())
+,FILTER('FRIMEI','FRIMEI'[date]<>TODAY())
 )
 
 //This result applies to product category B related persons group B
-var c = CALCULATE(SUM('FR激活IMEI'[Qte])
-,FILTER('FR激活IMEI','FR激活IMEI'[type]="MOBILE")
+var c = CALCULATE(SUM('FRIMEI'[Qte])
+,FILTER('FRIMEI','FRIMEI'[type]="MOBILE")
 ,Filter('OPPO_Product_Mapping','OPPO_Product_Mapping'[Client]<>"LDU")
 ,FILTER('Settlement_Mapping','Settlement_Mapping'[KA_Short]="SFR")
-,FILTER('FR激活IMEI','FR激活IMEI'[激活时间]<>TODAY())
+,FILTER('FRIMEI','FRIMEI'[date]<>TODAY())
 )
 
 //This result applies to product category C related persons group C
-var d = CALCULATE(SUM('FR激活IMEI'[Qte])
-,FILTER('FR激活IMEI','FR激活IMEI'[type]="MOBILE")
+var d = CALCULATE(SUM('FRIMEI'[Qte])
+,FILTER('FRIMEI','FRIMEI'[type]="MOBILE")
 ,Filter('OPPO_Product_Mapping','OPPO_Product_Mapping'[Client]<>"LDU")
 ,FILTER('Settlement_Mapping','Settlement_Mapping'[KA_Short]="BOUYGUES")
-,FILTER('FR激活IMEI','FR激活IMEI'[激活时间]<>TODAY())
+,FILTER('FRIMEI','FRIMEI'[date]<>TODAY())
 )
 
 //This result applies to product category D related persons group D
-var SaleOm1 = CALCULATE(SUM('FR激活IMEI'[Qte])
-,FILTER('FR激活IMEI','FR激活IMEI'[type]="MOBILE")
+var SaleOm1 = CALCULATE(SUM('FRIMEI'[Qte])
+,FILTER('FRIMEI','FRIMEI'[type]="MOBILE")
 ,Filter('OPPO_Product_Mapping','OPPO_Product_Mapping'[Client]<>"LDU")
 ,FILTER('Settlement_Mapping','Settlement_Mapping'[KA_Short] in{"FnacDarty","LECLERC","La Poste","CORA","COSTCO"})
-,FILTER('FR激活IMEI','FR激活IMEI'[激活时间]<>TODAY())
+,FILTER('FRIMEI','FRIMEI'[date]<>TODAY())
 )
 
 //This result applies to product category E relevant persons group E
-var SaleOm2 = CALCULATE(SUM('FR激活IMEI'[Qte])
-,FILTER('FR激活IMEI','FR激活IMEI'[type]="MOBILE")
+var SaleOm2 = CALCULATE(SUM('FRIMEI'[Qte])
+,FILTER('FRIMEI','FRIMEI'[type]="MOBILE")
 ,Filter('OPPO_Product_Mapping','OPPO_Product_Mapping'[Client]<>"LDU")
 ,FILTER('Settlement_Mapping','Settlement_Mapping'[KA_Short] in{"Free","SystèmeU","Gpdis","LDLC","Cdiscount","UBALDI","RDC"})
-,FILTER('FR激活IMEI','FR激活IMEI'[激活时间]<>TODAY())
+,FILTER('FRIMEI','FRIMEI'[date]<>TODAY())
 )
 
 //This result applies to product category F relevant persons group F
-//2023/1/10 添加KA : BOUYGUES
-var SaleOm3 = CALCULATE(SUM('FR激活IMEI'[Qte])
-,FILTER('FR激活IMEI','FR激活IMEI'[type]="MOBILE")
+//2023/1/10 添加KA : BBB
+var SaleOm3 = CALCULATE(SUM('FRIMEI'[Qte])
+,FILTER('FRIMEI','FRIMEI'[type]="MOBILE")
 ,Filter('OPPO_Product_Mapping','OPPO_Product_Mapping'[Client]<>"LDU")
 ,FILTER('Settlement_Mapping','Settlement_Mapping'[KA_Short] in{"Boulanger","Auchan","Carrefour","Casino","EléctroDépôt","INTERMARCHE","BOUYGUES"})
-,FILTER('FR激活IMEI','FR激活IMEI'[激活时间]<>TODAY())
+,FILTER('FRIMEI','FRIMEI'[date]<>TODAY())
 )
 
 //This result applies to product category G relevant persons group G
-var SaleOm4 = CALCULATE(SUM('FR激活IMEI'[Qte])
-,FILTER('FR激活IMEI','FR激活IMEI'[type]="MOBILE")
+var SaleOm4 = CALCULATE(SUM('FRIMEI'[Qte])
+,FILTER('FRIMEI','FRIMEI'[type]="MOBILE")
 ,Filter('OPPO_Product_Mapping','OPPO_Product_Mapping'[Client]<>"LDU")
 ,FILTER('Settlement_Mapping','Settlement_Mapping'[KA_Short] in{"Amazon","RKT/E-shop"})
-,FILTER('FR激活IMEI','FR激活IMEI'[激活时间]<>TODAY())
+,FILTER('FRIMEI','FRIMEI'[date]<>TODAY())
 )
 
 return
